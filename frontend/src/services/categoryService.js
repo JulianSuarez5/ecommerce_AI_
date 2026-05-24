@@ -1,14 +1,24 @@
 import api from '../api/axios';
 
 export const categoryService = {
-  getAll: () => api.get('/categorias'),
+  getAll: () => {
+    return api.get('/categorias');
+  },
 
-  getById: (id) => api.get(`/categorias/${id}`),
+  getById: (id) => {
+    return api.get(`/categorias/${id}`);
+  },
 
   // Admin
-  create: (data) => api.post('/admin/categorias', data),
+  create: (data) => {
+    return api.post('/admin/categorias', data);
+  },
 
-  update: (id, data) => api.put(`/admin/categorias/${id}`, data),
+  update: (id, data) => {
+    return api.put(`/admin/categorias/${id}`, data);
+  },
 
-  delete: (id) => api.delete(`/admin/categorias/${id}`),
+  delete: (id) => {
+    return api.delete(`/admin/categorias/${id}`);
+  },
 };

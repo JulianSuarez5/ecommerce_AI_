@@ -1,15 +1,27 @@
 import api from '../api/axios';
 
 export const aiService = {
-  chat: (question, contextData) => api.post('/ai/chat', { question, contextData }),
+  chat: (question, contextData) => {
+    return api.post('/ai/chat', { question, contextData });
+  },
 
-  adminChat: (question) => api.post('/ai/admin/chat', { question }),
+  adminChat: (question) => {
+    return api.post('/ai/admin/chat', { question });
+  },
 
-  getClientContext: () => api.get('/ai/contexto-cliente'),
+  getClientContext: () => {
+    return api.get('/ai/contexto-cliente');
+  },
 
-  getBusinessInfo: () => api.get('/ai/info-negocio'),
+  getBusinessInfo: () => {
+    return api.get('/ai/info-negocio');
+  },
 
-  getBusinessContext: () => api.get('/ai/contexto-negocio'),
+  getBusinessContext: () => {
+    return api.get('/ai/contexto-negocio');
+  },
 
-  getInsights: () => api.get('/ai/insights'),
+  getInsights: () => {
+    return api.get('/ai/insights');
+  },
 };

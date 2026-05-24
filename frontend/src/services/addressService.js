@@ -1,11 +1,19 @@
 import api from '../api/axios';
 
 export const addressService = {
-  getAll: () => api.get('/usuarios/direcciones'),
+  getAll: () => {
+    return api.get('/usuarios/direcciones');
+  },
 
-  create: (data) => api.post('/usuarios/direcciones', data),
+  create: (data) => {
+    return api.post('/usuarios/direcciones', data);
+  },
 
-  update: (id, data) => api.put(`/usuarios/direcciones/${id}`, data),
+  update: (id, data) => {
+    return api.put(`/usuarios/direcciones/${id}`, data);
+  },
 
-  delete: (id) => api.delete(`/usuarios/direcciones/${id}`),
+  delete: (id) => {
+    return api.delete(`/usuarios/direcciones/${id}`);
+  },
 };
