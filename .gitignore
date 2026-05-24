@@ -1,0 +1,40 @@
+node_modules/
+dist/
+build/
+
+# Maven
+backend/target/
+*.jar
+*.war
+
+# Environment files
+.env
+.env.local
+backend/.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Java
+*.class
+*.jar
+*.war
+
+# Generated sources
+backend/target/generated-sources/
+
+# Python cache
+__pycache__/
+*.pyc

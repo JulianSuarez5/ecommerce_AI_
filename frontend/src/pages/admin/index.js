@@ -1,0 +1,13 @@
+export { default as DashboardPage } from './DashboardPage';
+export { default as ProductosAdminPage } from './ProductosAdminPage';
+export { default as PedidosAdminPage } from './PedidosAdminPage';
+export { default as PedidoDetailAdminPage } from './PedidoDetailAdminPage';
+export { default as MarcasAdminPage } from './MarcasAdminPage';
+export { default as CategoriasAdminPage } from './CategoriasAdminPage';
+export { default as ProveedoresAdminPage } from './ProveedoresAdminPage';
+export { default as UsuariosAdminPage } from './UsuariosAdminPage';
+export { default as ComprasAdminPage } from './ComprasAdminPage';
+export { default as CompraDetailAdminPage } from './CompraDetailAdminPage';
+export { default as InventarioAdminPage } from './InventarioAdminPage';
+export { default as ReportesAdminPage } from './ReportesAdminPage';
+export { default as ConfiguracionAdminPage } from './ConfiguracionAdminPage';

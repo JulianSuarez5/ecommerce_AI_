@@ -1,0 +1,12 @@
+package com.tiendaonline.repository;
+
+import com.tiendaonline.entity.PurchaseOrderStatusHistory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PurchaseOrderStatusHistoryRepository extends JpaRepository<PurchaseOrderStatusHistory, Long> {
+    List<PurchaseOrderStatusHistory> findByPurchaseOrderIdOrderByFechaAsc(Long purchaseOrderId);
+}

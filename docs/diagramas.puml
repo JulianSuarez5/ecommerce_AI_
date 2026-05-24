@@ -1,0 +1,591 @@
+@startuml CENTROVA - Diagrama de Clases (Entidades)
+' ─────────────────────────────────────────────────
+' 1. DIAGRAMA DE CLASES - ENTIDADES JPA
+' ─────────────────────────────────────────────────
+skinparam backgroundColor #FEFEFE
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+  FontSize 11
+  HeaderBackgroundColor #e8c97e
+  ArrowColor #e8c97e
+}
+skinparam arrow {
+  Color #e8c97e
+}
+
+entity "User" as User {
+  + id: Long
+  + nombre: String
+  + segundoNombre: String
+  + apellido: String
+  + segundoApellido: String
+  + email: String [unique]
+  + password: String
+  + telefono: String
+  + activo: boolean
+  + ultimoAcceso: LocalDateTime
+  --
+  + getNombreCompleto(): String
+}
+
+entity "Role" as Role {
+  + id: Long
+  + nombre: String [unique]
+}
+
+entity "Address" as Address {
+  + id: Long
+  + alias: String
+  + calle: String
+  + numero: String
+  + ciudad: String
+  + departamento: String
+  + codigoPostal: String
+  + referencia: String
+  + esPrincipal: boolean
+}
+
+entity "Category" as Category {
+  + id: Long
+  + nombre: String [unique]
+  + descripcion: String
+  + activo: boolean
+}
+
+entity "Brand" as Brand {
+  + id: Long
+  + nombre: String [unique]
+  + descripcion: String
+  + activo: boolean
+}
+
+entity "Product" as Product {
+  + id: Long
+  + nombre: String
+  + descripcion: String
+  + descripcionCorta: String
+  + precio: BigDecimal
+  + precioOferta: BigDecimal
+  + stock: int
+  + stockMinimo: int
+  + sku: String [unique]
+  + imagenPrincipal: String
+  + modelo3dUrl: String
+  + colores: String
+  + especificaciones: String
+  + tags: String
+  + destacado: boolean
+  + activo: boolean
+  + fechaCreacion: LocalDateTime
+  --
+  + isStockBajo(): boolean
+}
+
+entity "ProductImage" as ProductImage {
+  + id: Long
+  + url: String
+  + orden: int
+}
+
+entity "Cart" as Cart {
+  + id: Long
+}
+
+entity "CartItem" as CartItem {
+  + id: Long
+  + cantidad: int
+  + precioUnitario: BigDecimal
+  --
+  + getSubtotal(): BigDecimal
+}
+
+entity "Order" as Order {
+  + id: Long
+  + estado: OrderStatus [PENDIENTE,CONFIRMADO,ENVIADO,ENTREGADO,CANCELADO]
+  + subtotal: BigDecimal
+  + costoEnvio: BigDecimal
+  + total: BigDecimal
+  + notas: String
+  + fechaPedido: LocalDateTime
+  + fechaEnvio: LocalDateTime
+  + fechaEntrega: LocalDateTime
+  + numeroSeguimiento: String
+}
+
+entity "OrderDetail" as OrderDetail {
+  + id: Long
+  + cantidad: int
+  + precioUnitario: BigDecimal
+  + subtotal: BigDecimal
+}
+
+entity "OrderStatusHistory" as OrderStatusHistory {
+  + id: Long
+  + estado: String
+  + comentario: String
+  + fecha: LocalDateTime
+}
+
+entity "Payment" as Payment {
+  + id: Long
+  + metodo: String
+  + estado: String
+  + monto: BigDecimal
+  + referenciaExterna: String [unique]
+  + fechaPago: LocalDateTime
+  + fechaCreacion: LocalDateTime
+}
+
+entity "InventoryMovement" as InventoryMovement {
+  + id: Long
+  + tipo: String [ENTRADA,SALIDA,AJUSTE]
+  + cantidad: int
+  + motivo: String
+  + fecha: LocalDateTime
+}
+
+entity "PurchaseOrder" as PurchaseOrder {
+  + id: Long
+  + estado: PurchaseOrderStatus
+  + total: BigDecimal
+  + fechaPedido: LocalDateTime
+  + fechaEsperada: LocalDateTime
+  + notas: String
+}
+
+entity "PurchaseOrderItem" as PurchaseOrderItem {
+  + id: Long
+  + cantidad: int
+  + precioUnitario: BigDecimal
+  + subtotal: BigDecimal
+}
+
+entity "Supplier" as Supplier {
+  + id: Long
+  + nombre: String
+  + contacto: String
+  + email: String
+  + telefono: String
+  + direccion: String
+  + activo: boolean
+}
+
+entity "PasswordResetToken" as PasswordResetToken {
+  + id: Long
+  + token: String [unique]
+  + fechaExpiracion: LocalDateTime
+  + usado: boolean
+}
+
+' ─── Relaciones ───
+User "1" -- "*" Address : tiene
+User "*" -- "*" Role : tiene
+User "1" -- "1" Cart : posee
+User "1" -- "*" Order : realiza
+
+Cart "1" -- "*" CartItem : contiene
+CartItem "*" -- "1" Product : referencia
+
+Order "1" -- "*" OrderDetail : contiene
+OrderDetail "*" -- "1" Product : snapshot
+Order "1" -- "1" Payment : tiene
+Order "1" -- "*" OrderStatusHistory : historial
+
+Product "*" -- "1" Category : pertenece
+Product "*" -- "1" Brand : tiene
+Product "1" -- "*" ProductImage : imagenes
+Product "1" -- "*" InventoryMovement : movimientos
+
+PurchaseOrder "1" -- "*" PurchaseOrderItem : contiene
+PurchaseOrderItem "*" -- "1" Product : referencia
+PurchaseOrder "*" -- "1" Supplier : Proveedor
+
+User "1" -- "*" PasswordResetToken : tokens
+
+@enduml
+
+' ═══════════════════════════════════════════════
+' 2. DIAGRAMA DE CASOS DE USO
+' ═══════════════════════════════════════════════
+@startuml CENTROVA - Casos de Uso
+skinparam backgroundColor #FEFEFE
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontColor #1a1a1a
+}
+
+' === Actores ===
+actor ":Cliente" as Cliente
+actor ":Admin" as Admin
+actor ":PayPal" as Paypal
+actor ":Sistema Email" as Email
+
+' === Paquete Cliente (vertical) ===
+rectangle "Cliente" as ClienteRect {
+  usecase "Registrarse" as UC1
+  usecase "Iniciar sesión" as UC2
+  usecase "Recuperar contraseña" as UC3
+  usecase "Buscar productos" as UC4
+  usecase "Filtrar por categoría" as UC5
+  usecase "Ver detalle de producto" as UC6
+  usecase "Ver producto en 3D" as UC7
+  usecase "Agregar al carrito" as UC8
+  usecase "Gestionar carrito" as UC9
+  usecase "Realizar checkout" as UC10
+  usecase "Pagar con PayPal" as UC11
+  usecase "Ver historial de pedidos" as UC12
+  usecase "Ver detalle de pedido" as UC13
+}
+
+' === Paquete Administrador (vertical) ===
+rectangle "Administrador" as AdminRect {
+  usecase "Gestionar productos" as UC20
+  usecase "Gestionar categorías" as UC21
+  usecase "Gestionar marcas" as UC22
+  usecase "Gestionar proveedores" as UC23
+  usecase "Gestionar usuarios" as UC24
+  usecase "Gestionar pedidos" as UC25
+  usecase "Cambiar estado pedido" as UC26
+  usecase "Gestionar inventario" as UC27
+  usecase "Gestionar compras" as UC28
+  usecase "Ver dashboard" as UC29
+  usecase "Ver reportes" as UC30
+  usecase "Chat IA Insights" as UC31
+  usecase "Subir modelo 3D" as UC32
+}
+
+' === Conexiones Cliente ===
+Cliente -down-> UC1
+Cliente -down-> UC2
+Cliente -down-> UC3
+Cliente -down-> UC4
+Cliente -down-> UC5
+Cliente -down-> UC6
+Cliente -down-> UC7
+Cliente -down-> UC8
+Cliente -down-> UC9
+Cliente -down-> UC10
+Cliente -down-> UC11
+Cliente -down-> UC12
+Cliente -down-> UC13
+
+' === Conexiones Admin ===
+Admin -down-> UC20
+Admin -down-> UC21
+Admin -down-> UC22
+Admin -down-> UC23
+Admin -down-> UC24
+Admin -down-> UC25
+Admin -down-> UC26
+Admin -down-> UC27
+Admin -down-> UC28
+Admin -down-> UC29
+Admin -down-> UC30
+Admin -down-> UC31
+Admin -down-> UC32
+
+' === Interacciones del sistema ===
+UC11 --> Paypal : procesa pago
+UC3 --> Email : envía token
+UC11 --> Email : confirma pago
+UC26 --> Email : notifica cambio
+
+' === Mejora de layout vertical ===
+left to right direction
+skinparam packageStyle rectangle
+skinparam nodesep 30
+skinparam ranksep 40
+
+@enduml
+
+' ═══════════════════════════════════════════════
+' 3. DIAGRAMA DE ACTIVIDADES - FLUJO DE CHECKOUT
+' ═══════════════════════════════════════════════
+@startuml CENTROVA - Flujo de Checkout
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam arrow {
+  Color #e8c97e
+}
+
+start
+:Usuario navega catálogo;
+:Agrega productos al carrito;
+
+repeat
+  :Revisa carrito;
+  :¿Desea modificar cantidades?;
+  if () then (sí)
+    :Actualiza cantidades en carrito;
+    :Sistema valida stock disponible;
+  else (no)
+  endif
+repeat while (¿Seguir comprando?) is (sí)
+->no;
+
+:Inicia checkout;
+:Selecciona dirección de envío;
+:Selecciona método de pago;
+
+if (PayPal?) then (sí)
+  :Redirige a PayPal;
+  :Usuario autoriza pago en PayPal;
+  :PayPal retorna orderId;
+else (transferencia/Tarjeta)
+  :Continúa sin PayPal;
+endif
+
+:Sistema verifica idempotencia del pago;
+if (Pago duplicado?) then (sí)
+  :Rechaza con error;
+  stop
+endif
+
+:Valida stock nuevamente (race condition);
+:Sistema descuenta stock;
+:Registra pago;
+:Guarda pedido con estado PENDIENTE/CONFIRMADO;
+
+:Registra historial de estado;
+:Limpia carrito del usuario;
+
+:Publica evento OrderCreated;
+:EventListener envía email de confirmación;
+
+:Retorna resumen del pedido;
+stop
+
+@enduml
+
+' ═══════════════════════════════════════════════
+' 4. DIAGRAMA DE PAQUETES - ARQUITECTURA EN CAPAS
+' ═══════════════════════════════════════════════
+@startuml CENTROVA - Arquitectura en Capas
+skinparam backgroundColor #FEFEFE
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+  FontSize 11
+}
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+  FontSize 10
+}
+skinparam arrow {
+  Color #686868
+}
+
+package "Frontend (React + Vite)" as FE {
+  rectangle "pages/" as FE_PAGES
+  rectangle "components/" as FE_COMP
+  rectangle "context/" as FE_CTX
+  rectangle "hooks/" as FE_HOOKS
+  rectangle "api/" as FE_API
+  rectangle "utils/" as FE_UTILS
+}
+
+package "API REST (HTTP/JSON)" as API
+
+package "Backend (Spring Boot 3.2)" as BE {
+  package "Controller" as CTRL {
+  }
+
+  package "Service" as SVC {
+  }
+
+  package "Event" as EVT {
+  }
+
+  package "Repository" as REPO {
+  }
+
+  package "Entity" as ENT {
+  }
+
+  package "Security" as SEC {
+  }
+
+  package "Config & DTOs" as CFG {
+  }
+}
+
+rectangle "Base de Datos\nSQL Server" as DB
+
+rectangle "Servicios Externos" as EXT {
+  rectangle "PayPal" as PP
+  rectangle "Gmail SMTP" as GM
+  rectangle "Anthropic Claude" as AI
+}
+
+' ── Conexiones ──
+FE --> API : HTTP/JSON
+API --> CTRL : Spring MVC
+
+CTRL --> SVC : llama
+SVC --> REPO : consulta
+SVC --> EVT : publica
+EVT ..> SVC : escucha
+REPO --> ENT : mapea
+SVC ..> CFG : DTOs
+
+REPO --> DB : JDBC (1433)
+SVC --> SEC : authorize
+
+SVC --> EXT : integra
+
+@enduml
+
+' ═══════════════════════════════════════════════
+' 5. DIAGRAMA DE SECUENCIA - CHECKOUT CON PAYPAL
+' ═══════════════════════════════════════════════
+@startuml CENTROVA - Secuencia Checkout PayPal
+skinparam backgroundColor #FEFEFE
+skinparam participant {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam arrow {
+  Color #e8c97e
+}
+
+actor "Cliente" as C
+participant "Frontend\nReact" as FE
+participant "ProductoController" as CTRL_PROD
+participant "PedidoController" as CTRL_ORD
+participant "PedidoServiceImpl" as SVC
+participant "PaymentRepository" as PAY_REPO
+participant "ProductRepository" as PROD_REPO
+participant "OrderRepository" as ORD_REPO
+participant "EventPublisher" as EVT
+participant "PayPal" as PP
+participant "EmailService" as EMAIL
+
+C -> FE: 1. Agrega producto al carrito
+FE -> CTRL_PROD: GET /productos
+CTRL_PROD --> FE: Productos disponibles
+
+C -> FE: 2. Inicia checkout
+FE -> FE: Valida carrito no vacío
+
+C -> FE: 3. Selecciona dirección
+C -> FE: 4. Hace clic en "Pagar con PayPal"
+FE -> PP: 5. Crea orden PayPal
+PP --> FE: 6. OrderID
+
+C -> FE: 7. Confirma pago
+FE -> CTRL_ORD: POST /pedidos/checkout\n{ paypalOrderId, items, addressId }
+
+CTRL_ORD -> SVC: checkout(userId, request)
+
+SVC -> PAY_REPO: 8. existsByReferenciaExterna(id)
+PAY_REPO --> SVC: false (no duplicado)
+
+SVC -> PROD_REPO: 9. findById(productId)
+PROD_REPO --> SVC: Producto
+
+SVC -> SVC: 10. Valida stock >= cantidad
+
+SVC -> PROD_REPO: 11. Descuenta stock
+PROD_REPO --> SVC: stock actualizado
+
+SVC -> SVC: 12. Calcula subtotal, envío, total
+
+SVC -> ORD_REPO: 13. save(pedido con Payment)
+ORD_REPO --> SVC: Pedido guardado
+
+SVC -> SVC: 14. registrarHistorial(CONFIRMADO)
+
+SVC -> EVT: 15. publish(OrderCreatedEvent)
+EVT -> EMAIL: 16. Envía confirmación
+EMAIL --> C: Email de confirmación
+
+SVC --> CTRL_ORD: PedidoResponse
+CTRL_ORD --> FE: { id, estado, total, ... }
+FE --> C: 17. Pantalla de confirmación
+
+@enduml
+
+' ═══════════════════════════════════════════════
+' 6. DIAGRAMA DE DESPLIEGUE
+' ═══════════════════════════════════════════════
+@startuml CENTROVA - Despliegue
+skinparam backgroundColor #FEFEFE
+skinparam node {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam cloud {
+  BackgroundColor #FFFFFF
+  BorderColor #e8c97e
+  FontColor #1a1a1a
+}
+skinparam arrow {
+  Color #e8c97e
+}
+
+node "Servidor Frontend\n(Vite / CDN)" as FE_NODE {
+  [SPA React]\n(puerto 5173 dev\n/ 80 prod)
+}
+
+node "Servidor Backend\n(Java 21 / Spring Boot)" as BE_NODE {
+  [API REST]\n(puerto 8080)
+  [Modelos 3D]\n(/modelos/**)
+}
+
+database "SQL Server Express" as DB_NODE {
+  [tablas:\nusers, products,\norders, payments,\ncategories, etc.]
+}
+
+cloud "PayPal" as PAYPAL_CLOUD {
+  [PayPal API]\n(sandbox / live)
+}
+
+cloud "Gmail SMTP" as SMTP_CLOUD {
+  [Email Service]
+}
+
+cloud "Anthropic Claude" as CLAUDE_CLOUD {
+  [AI Insights API]
+}
+
+node "Cliente" as CLIENT {
+  [Navegador Web\n(Chrome, Firefox, Edge)]
+}
+
+CLIENT --> FE_NODE : HTTP/HTTPS
+FE_NODE --> BE_NODE : HTTP/JSON (API calls)
+BE_NODE --> DB_NODE : JDBC (puerto 1433)
+BE_NODE --> PAYPAL_CLOUD : HTTPS (REST)
+BE_NODE --> SMTP_CLOUD : SMTP (587)
+BE_NODE --> CLAUDE_CLOUD : HTTPS (REST)
+FE_NODE ..> PAYPAL_CLOUD : PayPal JS SDK\n(redirect)
+
+@enduml

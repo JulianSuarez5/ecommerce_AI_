@@ -1,0 +1,11 @@
+export { default as HeroSection } from './HeroSection';
+export { default as FlashDealsGrid } from './FlashDealsGrid';
+export { default as TrustBadges } from './TrustBadges';
+export { default as StatsBand } from './StatsBand';
+export { default as BentoCategories } from './BentoCategories';
+export { default as FeaturedSection } from './FeaturedSection';
+export { default as OffersSection } from './OffersSection';
+export { default as WhySection } from './WhySection';
+export { default as OfferBanners } from './OfferBanners';
+export { default as Newsletter } from './Newsletter';
+export { default as FooterSection } from './FooterSection';

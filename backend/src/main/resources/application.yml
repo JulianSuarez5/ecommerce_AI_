@@ -1,0 +1,163 @@
+spring:
+  application:
+    name: centrova-api
+
+  datasource:
+    url: ${DB_URL:jdbc:sqlserver://localhost:1433;databaseName=CentrovaDB;encrypt=true;trustServerCertificate=true;integratedSecurity=false}
+    username: ${DB_USERNAME:CentrovaDB}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:validate}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        format_sql: false
+        use_sql_comments: false
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  jackson:
+    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    time-zone: America/Bogota
+    serialization:
+      write-dates-as-timestamps: false
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: never
+    include-stacktrace: never
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000
+    refresh-expiration-ms: 604800000
+    cookie-name: access_token
+    cookie-path: /
+    cookie-max-age-seconds: 86400
+    cookie-secure: ${JWT_COOKIE_SECURE:false}
+
+  upload:
+    dir: ${UPLOAD_DIR:${user.home}/centrova/uploads}
+
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+groq:
+  api-key: ${GROQ_API_KEY}
+
+tavily:
+  api-key: ${TAVILY_API_KEY}
+
+paypal:
+  client-id: ${PAYPAL_CLIENT_ID}
+  client-secret: ${PAYPAL_CLIENT_SECRET}
+  base-url: ${PAYPAL_BASE_URL:https://api-m.sandbox.paypal.com}
+
+wompi:
+  public-key: ${WOMPI_PUBLIC_KEY:pub_test_siRFrZxFiPuJWucTjcQbqPxnGlh8rvcd}
+  private-key: ${WOMPI_PRIVATE_KEY:prv_test_TVAdSufWq1ZIy7YGDSsVWTRACkNZ4vP0}
+  integrity-secret: ${WOMPI_INTEGRITY_SECRET:test_integrity_SdmQaByby9qdfKwODfH6UkciMHj4Arrc}
+  event-secret: ${WOMPI_EVENT_SECRET:test_events_xvT39RdpfrJLvvKjICB70M91BUV1DwGb}
+  base-url: ${WOMPI_BASE_URL:https://sandbox.wompi.co}
+  redirect-url: ${WOMPI_REDIRECT_URL:http://localhost:3000/pedido-confirmado}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.tiendaonline: ${LOG_LEVEL_APP:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate: ${LOG_LEVEL_HIBERNATE:WARN}
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:logs/centrova.log}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
+logging:
+  level:
+    com.tiendaonline: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+groq:
+  api-key: test-key
+
+app:
+  jwt:
+    secret: test-secret-key-for-testing-purposes-only
