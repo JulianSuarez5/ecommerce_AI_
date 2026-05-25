@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,11 +22,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiContextServiceImpl implements AiContextService {
 
+    private static final NumberFormat CURRENCY_FMT = NumberFormat.getNumberInstance(new Locale("es", "CO"));
+    static {
+        CURRENCY_FMT.setMinimumFractionDigits(0);
+        CURRENCY_FMT.setMaximumFractionDigits(0);
+        CURRENCY_FMT.setRoundingMode(RoundingMode.HALF_UP);
+    }
+
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ConfiguracionNegocioRepository configuracionNegocioRepository;
     private final CategoryRepository categoryRepository;
+
+    private String formatCurrency(BigDecimal amount) {
+        if (amount == null) return "$0";
+        return "$" + CURRENCY_FMT.format(amount);
+    }
 
     @Override
     public String buildBusinessContext() {
@@ -43,8 +57,8 @@ public class AiContextServiceImpl implements AiContextService {
                 int descuento = precioOriginal.compareTo(BigDecimal.ZERO) > 0 
                     ? precioOriginal.subtract(precioOferta).multiply(BigDecimal.valueOf(100)).divide(precioOriginal, 0, java.math.RoundingMode.HALF_UP).intValue()
                     : 0;
-                return String.format("- %s: $%s (antes $%s, %d%% descuento, Stock: %d, SKU: %s)", 
-                    p.getNombre(), precioOferta.toPlainString(), precioOriginal.toPlainString(), descuento, p.getStock(), p.getSku());
+                return String.format("- %s: %s (antes %s, %d%% descuento, Stock: %d, SKU: %s)", 
+                    p.getNombre(), formatCurrency(precioOferta), formatCurrency(precioOriginal), descuento, p.getStock(), p.getSku());
             })
             .collect(Collectors.joining("\n"));
         if (productosOferta.size() > 10) productosOfertaStr += String.format("\n- ... y %d productos mas en oferta", productosOferta.size() - 10);
@@ -53,7 +67,7 @@ public class AiContextServiceImpl implements AiContextService {
             .limit(5)
             .map(p -> {
                 BigDecimal precio = p.getPrecioOferta() != null ? p.getPrecioOferta() : p.getPrecio();
-                return String.format("- %s: $%s (Stock: %d, SKU: %s)", p.getNombre(), precio.toPlainString(), p.getStock(), p.getSku());
+                return String.format("- %s: %s (Stock: %d, SKU: %s)", p.getNombre(), formatCurrency(precio), p.getStock(), p.getSku());
             })
             .collect(Collectors.joining("\n"));
 
@@ -86,8 +100,8 @@ public class AiContextServiceImpl implements AiContextService {
         return infoNegocio + "\n\nPEDIDOS RECIENTES DEL CLIENTE:\n" +
             orders.getContent().stream()
                 .map(o -> String.format(
-                    "- Pedido #%d: %s | Total: $%s | Fecha: %s",
-                    o.getId(), o.getEstado(), o.getTotal().toPlainString(), o.getFechaPedido().toLocalDate()
+                    "- Pedido #%d: %s | Total: %s | Fecha: %s",
+                    o.getId(), o.getEstado(), formatCurrency(o.getTotal()), o.getFechaPedido().toLocalDate()
                 ))
                 .collect(Collectors.joining("\n"));
     }
@@ -143,8 +157,8 @@ public class AiContextServiceImpl implements AiContextService {
             metric.put("tipo", "positive");
             metric.put("titulo", "Ventas del mes");
             metric.put("descripcion", String.format(
-                "Las ventas del mes alcanzan $%s con %d clientes activos.",
-                ventasMes.toPlainString(), clientesActivos
+                "Las ventas del mes alcanzan %s con %d clientes activos.",
+                formatCurrency(ventasMes), clientesActivos
             ));
             insights.add(metric);
         }
@@ -234,15 +248,15 @@ public class AiContextServiceImpl implements AiContextService {
         return "=== ESTADISTICAS DEL NEGOCIO ===\n" +
             String.format(
                 "TOTAL PRODUCTOS ACTIVOS: %d\n" +
-                "VENTAS DEL MES: $%s\n" +
+                "VENTAS DEL MES: %s\n" +
                 "PEDIDOS POR ESTADO: Pendientes=%d | Confirmados=%d | Enviados=%d | Entregados=%d\n" +
-                "CATEGORIA CON MAS VENTAS: %s ($%s)\n" +
+                "CATEGORIA CON MAS VENTAS: %s (%s)\n" +
                 "CLIENTES ACTIVOS: %d\n" +
                 "NUEVOS CLIENTES DEL MES: %d",
                 totalProductos,
-                ventasMes.toPlainString(),
+                formatCurrency(ventasMes),
                 pendientes, confirmados, enviados, entregados,
-                categoriaTop, catTopVenta.toPlainString(),
+                categoriaTop, formatCurrency(catTopVenta),
                 clientesActivos, nuevosClientes
             );
     }
