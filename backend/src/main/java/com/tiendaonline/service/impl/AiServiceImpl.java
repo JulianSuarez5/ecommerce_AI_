@@ -1,5 +1,12 @@
 package com.tiendaonline.service.impl;
 
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -36,7 +44,13 @@ public class AiServiceImpl implements AiService {
             @Value("${groq.api-key}") String apiKey, 
             AiContextService aiContextService,
             SearchService searchService) {
-        this.restTemplate = new RestTemplate();
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(30))
+                .proxy(ProxySelector.getDefault())
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(60));
+        this.restTemplate = new RestTemplate(factory);
         this.apiKey = apiKey;
         this.aiContextService = aiContextService;
         this.searchService = searchService;
@@ -144,7 +158,7 @@ public class AiServiceImpl implements AiService {
             return text;
 
         } catch (HttpClientErrorException e) {
-            log.error("=== GROQ HTTP ERROR [{}] ===", e.getStatusCode());
+            log.error("=== GROQ HTTP CLIENT ERROR [{}] ===", e.getStatusCode());
             log.error("Response body: {}", e.getResponseBodyAsString());
             if (e.getStatusCode().is4xxClientError() && e.getStatusCode().value() == 403) {
                 log.error("La API key de Groq fue rechazada (403). Verifica que GROQ_API_KEY sea valida y este activa en el archivo .env");
@@ -152,12 +166,17 @@ public class AiServiceImpl implements AiService {
             }
             return fallbackNoService();
         } catch (HttpServerErrorException e) {
-            log.error("=== GROQ SERVER ERROR [{}] ===", e.getStatusCode());
+            log.error("=== GROQ HTTP SERVER ERROR [{}] ===", e.getStatusCode());
             log.error("Response body: {}", e.getResponseBodyAsString());
             return fallbackNoService();
         } catch (Exception e) {
             log.error("=== GROQ UNEXPECTED ERROR ===");
-            log.error("Message: {}", e.getMessage());
+            log.error("Tipo: {}", e.getClass().getName());
+            log.error("Mensaje: {}", e.getMessage());
+            log.error("StackTrace:", e);
+            if (e.getCause() != null) {
+                log.error("Causa raiz: {}: {}", e.getCause().getClass().getName(), e.getCause().getMessage());
+            }
             return fallbackNoService();
         }
     }
