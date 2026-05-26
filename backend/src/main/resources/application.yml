@@ -3,10 +3,10 @@ spring:
     name: centrova-api
 
   datasource:
-    url: ${DB_URL:jdbc:sqlserver://localhost:1433;databaseName=CentrovaDB;encrypt=true;trustServerCertificate=true;integratedSecurity=false}
-    username: ${DB_USERNAME:CentrovaDB}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/centrova}
+    username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -16,11 +16,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${HIBERNATE_DDL_AUTO:validate}
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.SQLServerDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
         use_sql_comments: false
 

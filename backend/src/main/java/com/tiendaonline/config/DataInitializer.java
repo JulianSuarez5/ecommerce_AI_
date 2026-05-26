@@ -2,7 +2,6 @@ package com.tiendaonline.config;
 
 import com.tiendaonline.entity.*;
 import com.tiendaonline.repository.*;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -29,13 +28,11 @@ public class DataInitializer implements CommandLineRunner {
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public void run(String... args) {
         log.info("=== Iniciando carga de datos iniciales ===");
-        limpiarTriggersViejos();
         crearRoles();
         crearUsuarioAdmin();
         var juan = crearUsuarioCliente();
@@ -44,16 +41,6 @@ public class DataInitializer implements CommandLineRunner {
             crearPedidoPendiente(juan);
         }
         log.info("=== Datos iniciales cargados correctamente ===");
-    }
-
-    private void limpiarTriggersViejos() {
-        try {
-            entityManager.createNativeQuery("DROP TRIGGER IF EXISTS trg_DescontarStock").executeUpdate();
-            entityManager.createNativeQuery("DROP TRIGGER IF EXISTS trg_RevertirStock").executeUpdate();
-            log.info("Triggers viejos eliminados correctamente");
-        } catch (Exception e) {
-            log.warn("No se pudieron eliminar triggers (puede que ya no existan): {}", e.getMessage());
-        }
     }
 
     private void crearRoles() {

@@ -39,7 +39,7 @@ public class Product {
     @Column(nullable = false, length = 200)
     private String nombre;
 
-    @Column(columnDefinition = "VARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(name = "descripcion_corta", length = 500)
@@ -76,10 +76,10 @@ public class Product {
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @Column(columnDefinition = "VARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String colores;
 
-    @Column(columnDefinition = "VARCHAR(MAX)")
+    @Column(columnDefinition = "TEXT")
     private String especificaciones;
 
     @Column(length = 500)
