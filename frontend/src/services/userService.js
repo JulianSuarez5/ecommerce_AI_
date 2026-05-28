@@ -11,6 +11,15 @@ export const userService = {
     return api.put(`/admin/usuarios/${id}`, data);
   },
   delete: (id) => {
-    return api.delete(`/admin/usuarios/${id}`);
+    // 1. Limpiar espacios y asegurar formato string
+    const sanitizedId = String(id).trim();
+    
+    // 2. Validar que no contenga caracteres de escape de directorios
+    if (!sanitizedId || sanitizedId.includes('..') || sanitizedId.includes('/')) {
+      throw new Error('Formato de ID de usuario inválido o inseguro');
+    }
+    
+    // 3. Construir la petición de forma segura
+    return api.delete(`/admin/usuarios/${encodeURIComponent(sanitizedId)}`);
   },
 };

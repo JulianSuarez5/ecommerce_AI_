@@ -15,8 +15,18 @@ export const productService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  create: (data) => {
-    return api.post('/productos', data);
+  create: ({ nombre, precio, precioOferta, stock, stockMinimo, categoryId, brandId, especificaciones, ...rest }) => {
+    return api.post('/productos', {
+      nombre,
+      precio,
+      precioOferta,
+      stock,
+      stockMinimo,
+      categoryId,
+      brandId,
+      especificaciones,
+      ...rest
+    });
   },
   update: (id, data) => {
     return api.put(`/productos/${id}`, data);
